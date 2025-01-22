@@ -1,0 +1,133 @@
+// This file is for Database operations related to the user
+package repositories
+
+import (
+	"database/sql"
+	"fmt"
+	// "log"
+	log "github.com/sirupsen/logrus"
+
+	"github.com/awaisamjad/whisp/backend/db"
+	"github.com/awaisamjad/whisp/backend/internal"
+)
+
+type UserRepository struct {
+	db *sql.DB
+}
+
+func NewUserRepository() *UserRepository {
+	db, err := db.ConnectDB()
+	if err != nil {
+		log.Fatal("Failed to create a new user repository")
+	}
+	return &UserRepository{db: db}
+}
+
+func (r *UserRepository) CreateUser(SignUpInfo internal.SignUpRequest) error {
+	// ? Check if username already exists in dB
+	var user_exists bool
+	var email_exists bool
+
+	err := r.db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE username = ?)", SignUpInfo.Username).Scan(&user_exists)
+	if err != nil {
+		log.Error("Failed to check if username already exists in dB")
+		return fmt.Errorf("Internal Server Error")
+	}
+	if user_exists {
+		return fmt.Errorf("User already exists")
+	}
+
+	// ? Check if email already exists in dB
+	err = r.db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE email = ?)", SignUpInfo.Email).Scan(&email_exists)
+	if err != nil {
+		log.Error("Failed to check if email already exists in dB")
+		return fmt.Errorf("Internal Server Errir")
+	}
+	if email_exists {
+		return fmt.Errorf("Email is already in use")
+	}
+
+	// ?  Create the user
+	query := `INSERT INTO users (username, first_name, last_name, email, password) VALUES (?, ?, ?, ?, ?)`
+	_, err = r.db.Exec(query, SignUpInfo.Username, SignUpInfo.FirstName, SignUpInfo.LastName, SignUpInfo.Email, SignUpInfo.Password)
+	if err != nil {
+		log.Error("Failed to create user")
+		return fmt.Errorf("Either username or email is already in use")
+	}
+	return nil
+}
+
+func (r *UserRepository) LogInUser(logInInfo internal.LogInRequest) (internal.LogInReturn, error) {
+
+	var storedPassword, username, id string
+	//? Check if email exists and get the stored password and username
+	err := r.db.QueryRow("SELECT password, username, id FROM users WHERE email = ?", logInInfo.Email).Scan(&storedPassword, &username, &id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Error("Email is not registered")
+			return internal.LogInReturn{Username: "", Id: ""}, fmt.Errorf("Email is not registered")
+		}
+		log.Error("Internal Server Error")
+		return internal.LogInReturn{Username: "", Id: ""}, fmt.Errorf("Internal server error")
+	}
+
+	//? Check if the password matches
+	if !internal.CheckPasswordAgainstPasswordHash(logInInfo.Password, storedPassword) {
+		log.Error("Password does not match hashed password")
+		return internal.LogInReturn{Username: "", Id: ""}, fmt.Errorf("Incorrect Password")
+	}
+
+	logInReturn := internal.LogInReturn{
+		Id:       id,
+		Username: username,
+	}
+	return logInReturn, nil
+}
+
+func (r *UserRepository) CreatePost(createPostInfo internal.CreatePostRequest) error {
+	query := `INSERT INTO posts (content, user_id) VALUES (?, ?)`
+	_, err := r.db.Exec(query, createPostInfo.Content, createPostInfo.User_Id)
+	if err != nil {
+		log.Error("Failed to insert user post in posts table")
+		return fmt.Errorf("Failed to create post")
+	}
+
+	return nil
+}
+
+func (r *UserRepository) GetPosts() ([]internal.Post, error) {
+	var posts []internal.Post
+	query := `SELECT * FROM posts;`
+
+	rows, err := r.db.Query(query)
+	if err != nil {
+		log.Error("Failed to get posts from the database")
+		return nil, fmt.Errorf("Failed to get posts")
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var post internal.Post
+
+		err = rows.Scan(
+			&post.Id,
+			&post.User_Id,
+			&post.Username,
+			&post.Handle, &post.Avatar, &post.Title, &post.Text_Content, 
+			&post.Image_Content, &post.Media_URL, &post.Tags, &post.Comment_Count, 
+			&post.Retweet_Count, &post.Like_Num, &post.Dislike_Num, &post.Created_At, &post.Updated_At)
+
+		if err != nil {
+			log.Error("Failed to scan post row : ", err)
+			return nil, fmt.Errorf("Failed to get posts")
+		}
+		posts = append(posts, post)
+	}
+
+	if err = rows.Err(); err != nil {
+		log.Error("Error iterating over rows")
+		return nil, fmt.Errorf("Failed to get posts")
+	}
+
+	return posts, nil
+}
