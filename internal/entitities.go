@@ -7,22 +7,18 @@ var StandardRoutes = []string{
 }
 
 type Post struct {
-	Id            int      `json:"id"`
-	User_Id       int      `json:"user_id"`
-	Username      string   `json:"username"`
-	Handle        string   `json:"handle"`
-	Avatar        string   `json:"avatar"`
-	Title         string  `json:"title,omitempty"` // Optional title for the post
-	Text_Content  string   `json:"text_content"`
-	Image_Content string   `json:"image_content"`       // Could be extended to an array for multiple images
-	Media_URL     string  `json:"media_url,omitempty"` // Video or additional media URL
-	Tags          string `json:"tags,omitempty"`      // Tags for the post
-	Comment_Count int      `json:"comment_count"`       // Count of comments
-	Retweet_Count int      `json:"retweet_count"`       // Count of retweets
-	Like_Num      int      `json:"like_num"`
-	Dislike_Num   int      `json:"dislike_num"`
-	Created_At    string   `json:"created_at"`
-	Updated_At    string   `json:"updated_at"`
+	Id            int    `json:"id"`
+	User_Id       int    `json:"user_id"`
+	Username      string `json:"username"`
+	Avatar        string `json:"avatar"`
+	Text_Content  string `json:"text_content"`
+	Image_Content string `json:"image_content,omitempty"`  // Could be extended to an array for multiple images
+	Tags          string `json:"tags,omitempty"` // Tags for the post
+	Comment_Count int    `json:"comment_count"`  // Count of comments
+	Retweet_Count int    `json:"retweet_count"`  // Count of retweets
+	Like_Count    int    `json:"like_num"`
+	Created_At    string `json:"created_at"`
+	Updated_At    string `json:"updated_at"`
 }
 
 // ? Following and Followers are a list of user id's (ints) of those they are following/followed by

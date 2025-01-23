@@ -47,7 +47,7 @@ func LogIn(ctx *gin.Context) {
 		return
 	}
 
-	jwt_token, err := internal.CreateToken(logInReturnData, 24)
+	jwt_token, err := internal.CreateToken(logInReturnData, 1)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, internal.ErrorResponse{ErrorMessage: err.Error()})
 	}

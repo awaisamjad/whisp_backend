@@ -21,13 +21,13 @@ func GenerateSecureDailyKey() string {
 	hash := sha256.Sum256([]byte(key))
 	return fmt.Sprintf("%x", hash[:])
 }
-// Duration is in hours
+// Duration is in days
 func CreateToken(logInReturnData LogInReturn, duration int) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
 			"username": logInReturnData.Username,
 			"id":       logInReturnData.Id,
-			"exp":      time.Now().Add(time.Hour * time.Duration(duration)).Unix(),
+			"exp":      time.Now().Add(time.Second * 24 * time.Duration(duration)).Unix(),
 		})
 
 	tokenString, err := token.SignedString(secretKey)

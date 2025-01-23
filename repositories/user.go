@@ -5,10 +5,10 @@ import (
 	"database/sql"
 	"fmt"
 	// "log"
-	log "github.com/sirupsen/logrus"
-
+	"encoding/json"
 	"github.com/awaisamjad/whisp/backend/db"
 	"github.com/awaisamjad/whisp/backend/internal"
+	log "github.com/sirupsen/logrus"
 )
 
 type UserRepository struct {
@@ -108,19 +108,47 @@ func (r *UserRepository) GetPosts() ([]internal.Post, error) {
 
 	for rows.Next() {
 		var post internal.Post
+		// tags and image_content are stored as JSON so handled differently
+		var image_content string
+		var tags string
 
 		err = rows.Scan(
 			&post.Id,
 			&post.User_Id,
 			&post.Username,
-			&post.Handle, &post.Avatar, &post.Title, &post.Text_Content, 
-			&post.Image_Content, &post.Media_URL, &post.Tags, &post.Comment_Count, 
-			&post.Retweet_Count, &post.Like_Num, &post.Dislike_Num, &post.Created_At, &post.Updated_At)
+			&post.Avatar,
+			&post.Text_Content,
+			&image_content,
+			&tags,
+			&post.Comment_Count,
+			&post.Retweet_Count,
+			&post.Like_Count,
+			&post.Created_At,
+			&post.Updated_At)
 
 		if err != nil {
 			log.Error("Failed to scan post row : ", err)
 			return nil, fmt.Errorf("Failed to get posts")
 		}
+
+		if tags != "" {
+			err := json.Unmarshal([]byte(tags), &post.Tags)
+			if err != nil {
+				log.Error(err)
+			}
+		} else {
+			log.Warn("Tags are empty")
+		}
+
+		if image_content != "" {
+			err := json.Unmarshal([]byte(image_content), &post.Image_Content)
+			if err != nil {
+				log.Error(err)
+			}
+		} else {
+			log.Warn("Image Content is empty")
+		}
+
 		posts = append(posts, post)
 	}
 
@@ -128,6 +156,5 @@ func (r *UserRepository) GetPosts() ([]internal.Post, error) {
 		log.Error("Error iterating over rows")
 		return nil, fmt.Errorf("Failed to get posts")
 	}
-
 	return posts, nil
 }
