@@ -65,20 +65,20 @@ func (r *UserRepository) LogInUser(logInInfo internal.LogInRequest) (internal.Lo
 	if err != nil {
 		if err == sql.ErrNoRows {
 			log.Error("Email is not registered")
-			return internal.LogInReturn{Username: "", Id: ""}, fmt.Errorf("Email is not registered")
+			return internal.LogInReturn{Username: "", User_Id: ""}, fmt.Errorf("Email is not registered")
 		}
 		log.Error("Internal Server Error")
-		return internal.LogInReturn{Username: "", Id: ""}, fmt.Errorf("Internal server error")
+		return internal.LogInReturn{Username: "", User_Id: ""}, fmt.Errorf("Internal server error")
 	}
 
 	//? Check if the password matches
 	if !internal.CheckPasswordAgainstPasswordHash(logInInfo.Password, storedPassword) {
 		log.Error("Password does not match hashed password")
-		return internal.LogInReturn{Username: "", Id: ""}, fmt.Errorf("Incorrect Password")
+		return internal.LogInReturn{Username: "", User_Id: ""}, fmt.Errorf("Incorrect Password")
 	}
 
 	logInReturn := internal.LogInReturn{
-		Id:       id,
+		User_Id:       id,
 		Username: username,
 	}
 	return logInReturn, nil

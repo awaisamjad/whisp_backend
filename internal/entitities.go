@@ -56,7 +56,7 @@ type LogInRequest struct {
 // What the dB gives back when the user is logged in
 type LogInReturn struct {
 	Username string `json:"username"`
-	Id       string `json:"id"`
+	User_Id       string `json:"user_id"`
 }
 
 type CreatePostRequest struct {

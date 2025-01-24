@@ -2,7 +2,7 @@
 package handlers
 
 import (
-	// "log"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 
 	"github.com/awaisamjad/whisp/backend/internal"
@@ -34,7 +34,6 @@ func SignUp(ctx *gin.Context) {
 func LogIn(ctx *gin.Context) {
 
 	var logInInfo internal.LogInRequest
-
 	if err := ctx.ShouldBindJSON(&logInInfo); err != nil {
 		ctx.JSON(http.StatusBadRequest, internal.ErrorResponse{ErrorMessage: "Invalid input"})
 		return
@@ -47,49 +46,13 @@ func LogIn(ctx *gin.Context) {
 		return
 	}
 
-	jwt_token, err := internal.CreateToken(logInReturnData, 1)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, internal.ErrorResponse{ErrorMessage: err.Error()})
-	}
-
+	log.Println(string(internal.Auth_Token))
 	ctx.JSON(http.StatusOK, gin.H{
 		"username": logInReturnData.Username,
-		"id":       logInReturnData.Id,
-		"token":    jwt_token,
+		"user_id":  logInReturnData.User_Id,
+		// "auth_token": "jwt_token",
+		"auth_token": internal.Auth_Token,
 	})
+	log.Println(string(internal.Auth_Token))
 
-}
-
-func CreatePost(ctx *gin.Context) {
-	var createPostInfo internal.CreatePostRequest
-
-	if err := ctx.ShouldBindJSON(&createPostInfo); err != nil {
-		ctx.JSON(http.StatusBadRequest, internal.ErrorResponse{ErrorMessage: "Invalid input"})
-		return
-	}
-
-	userService := service.NewUserService()
-	err := userService.CreatePost(createPostInfo)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, internal.ErrorResponse{ErrorMessage: err.Error()})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, nil)
-}
-
-func GetPosts(ctx *gin.Context) {
-
-	userService := service.NewUserService()
-
-	posts, err := userService.GetPosts()
-
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, internal.ErrorResponse{ErrorMessage: err.Error()})
-		return
-	}
-	
-	ctx.JSON(http.StatusOK, gin.H{
-		"posts" : posts,
-	})
 }

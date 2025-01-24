@@ -16,6 +16,7 @@ import (
 
 	"github.com/awaisamjad/whisp/backend/db"
 	"github.com/awaisamjad/whisp/backend/handlers"
+	"github.com/awaisamjad/whisp/backend/middleware"
 
 	// "github.com/awaisamjad/whisp/backend/internal"
 	"github.com/joho/godotenv"
@@ -54,12 +55,13 @@ func main() {
 	defer db.Close()
 
 	r := gin.Default()
+	r.Use(middleware.Auth())
 
 	FRONTEND_LOCAL_URL := os.Getenv("FRONTEND_LOCAL_URL")
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{FRONTEND_LOCAL_URL},
+		AllowOrigins:     []string{FRONTEND_LOCAL_URL}, // Ensure this matches your frontend URL
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		AllowCredentials: true,
 	}))
 
@@ -68,7 +70,7 @@ func main() {
 
 	auth := r.Group("/auth")
 	auth.POST("/signup", handlers.SignUp)
-	auth.POST("/login", handlers.LogIn)
+	auth.POST("/login", middleware.LogHeaders(), handlers.LogIn)
 
 	r.POST("/create-post", handlers.CreatePost)
 	r.GET("/posts", handlers.GetPosts)
