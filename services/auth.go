@@ -75,3 +75,7 @@ func (u *UserService) CreatePost(createPostInfo internal.CreatePostRequest) erro
 func (u *UserService) GetPosts() ([]internal.Post, error) {
 	return u.repo.GetPosts()
 }
+
+func (u *UserService) GetPostByID(id string) (internal.Post, error) {
+	return u.repo.GetPostByID(id)
+}

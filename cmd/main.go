@@ -74,7 +74,7 @@ func main() {
 
 	r.POST("/create-post", handlers.CreatePost)
 	r.GET("/posts", handlers.GetPosts)
-
+	r.GET("/posts/:id", handlers.GetPostByID)
 	r.GET("/test", func(ctx *gin.Context) {
 
 	})

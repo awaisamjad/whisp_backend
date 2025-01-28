@@ -47,3 +47,25 @@ func GetPosts(ctx *gin.Context) {
 		"posts" : posts,
 	})
 }
+
+func GetPostByID(ctx *gin.Context) {
+
+	isAuthenticated, exists := ctx.Get("isAuthenticated")
+    if !exists {
+        isAuthenticated = false // Default to false if not set
+    }
+
+	userService := service.NewUserService()
+	id := ctx.Param("id")
+	post, err := userService.GetPostByID(id)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, internal.ErrorResponse{ErrorMessage: err.Error()})
+		return
+	}
+	
+	ctx.JSON(http.StatusOK, gin.H{
+		"isAuthenticated": isAuthenticated,
+		"post" : post,
+	})
+}

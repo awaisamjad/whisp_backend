@@ -4,8 +4,11 @@ package repositories
 import (
 	"database/sql"
 	"fmt"
+	"strconv"
+
 	// "log"
 	"encoding/json"
+
 	"github.com/awaisamjad/whisp/backend/db"
 	"github.com/awaisamjad/whisp/backend/internal"
 	log "github.com/sirupsen/logrus"
@@ -18,7 +21,7 @@ type UserRepository struct {
 func NewUserRepository() *UserRepository {
 	db, err := db.ConnectDB()
 	if err != nil {
-		log.Fatal("Failed to create a new user repository")
+		log.Fatal("Failed to connet to dB")
 	}
 	return &UserRepository{db: db}
 }
@@ -158,3 +161,60 @@ func (r *UserRepository) GetPosts() ([]internal.Post, error) {
 	}
 	return posts, nil
 }
+
+func (r *UserRepository) GetPostByID(id string) (internal.Post, error) {
+	var post internal.Post
+	query := `SELECT * FROM posts WHERE id=?;`
+	int_id, err := strconv.Atoi(id) 
+	if err != nil {
+		log.Error("Failed to convert id type string to int")
+	}
+	row := r.db.QueryRow(query, int_id)
+	// tags and image_content are stored as JSON so handled differently
+	var image_content string
+	var tags string
+
+	err = row.Scan(
+		&post.Id,
+		&post.User_Id,
+		&post.Username,
+		&post.Avatar,
+		&post.Text_Content,
+		&image_content,
+		&tags,
+		&post.Comment_Count,
+		&post.Retweet_Count,
+		&post.Like_Count,
+		&post.Created_At,
+		&post.Updated_At)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Error("No post found with the given ID")
+			return internal.Post{}, fmt.Errorf("No post found with the given ID")
+		}
+		log.Error("Failed to scan post row : ", err)
+		return internal.Post{}, fmt.Errorf("Failed to get post")
+	}
+
+	if tags != "" {
+		err := json.Unmarshal([]byte(tags), &post.Tags)
+		if err != nil {
+			log.Error(err)
+		}
+	} else {
+		log.Warn("Tags are empty")
+	}
+
+	if image_content != "" {
+		err := json.Unmarshal([]byte(image_content), &post.Image_Content)
+		if err != nil {
+			log.Error(err)
+		}
+	} else {
+		log.Warn("Image Content is empty")
+	}
+
+	return post, nil
+}
+
