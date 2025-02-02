@@ -26,12 +26,13 @@ func CreatePost(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, nil)
 }
 
+// Generic function to get posts based on the user id
 func GetPosts(ctx *gin.Context) {
 
 	isAuthenticated, exists := ctx.Get("isAuthenticated")
-    if !exists {
-        isAuthenticated = false // Default to false if not set
-    }
+	if !exists {
+		isAuthenticated = false // Default to false if not set
+	}
 
 	userService := service.NewUserService()
 
@@ -41,19 +42,19 @@ func GetPosts(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, internal.ErrorResponse{ErrorMessage: err.Error()})
 		return
 	}
-	
+
 	ctx.JSON(http.StatusOK, gin.H{
 		"isAuthenticated": isAuthenticated,
-		"posts" : posts,
+		"posts":           posts,
 	})
 }
 
 func GetPostByID(ctx *gin.Context) {
 
 	isAuthenticated, exists := ctx.Get("isAuthenticated")
-    if !exists {
-        isAuthenticated = false // Default to false if not set
-    }
+	if !exists {
+		isAuthenticated = false // Default to false if not set
+	}
 
 	userService := service.NewUserService()
 	id := ctx.Param("id")
@@ -63,9 +64,30 @@ func GetPostByID(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, internal.ErrorResponse{ErrorMessage: err.Error()})
 		return
 	}
-	
+
 	ctx.JSON(http.StatusOK, gin.H{
 		"isAuthenticated": isAuthenticated,
-		"post" : post,
+		"post":            post,
 	})
 }
+
+// func UserPage(ctx *gin.Context) {
+// 	isAuthenticated, exists := ctx.Get("isAuthenticated")
+// 	if !exists {
+// 		isAuthenticated = false // Default to false if not set
+// 	}
+
+// 	userService := service.NewUserService()
+// 	id := ctx.Param("id")
+// 	posts, err := userService.GetPosts(id)
+
+// 	if err != nil {
+// 		ctx.JSON(http.StatusInternalServerError, internal.ErrorResponse{ErrorMessage: err.Error()})
+// 		return
+// 	}
+
+// 	ctx.JSON(http.StatusOK, gin.H{
+// 		"isAuthenticated": isAuthenticated,
+// 		"posts":            posts,
+// 	})
+// }

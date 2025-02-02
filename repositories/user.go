@@ -21,7 +21,7 @@ type UserRepository struct {
 func NewUserRepository() *UserRepository {
 	db, err := db.ConnectDB()
 	if err != nil {
-		log.Fatal("Failed to connet to dB")
+		log.Fatal("Failed to connet to dB : ", err)
 	}
 	return &UserRepository{db: db}
 }
@@ -33,7 +33,7 @@ func (r *UserRepository) CreateUser(SignUpInfo internal.SignUpRequest) error {
 
 	err := r.db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE username = ?)", SignUpInfo.Username).Scan(&user_exists)
 	if err != nil {
-		log.Error("Failed to check if username already exists in dB")
+		log.Error("Failed to check if username already exists in dB : ", err)
 		return fmt.Errorf("Internal Server Error")
 	}
 	if user_exists {
@@ -43,7 +43,7 @@ func (r *UserRepository) CreateUser(SignUpInfo internal.SignUpRequest) error {
 	// ? Check if email already exists in dB
 	err = r.db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE email = ?)", SignUpInfo.Email).Scan(&email_exists)
 	if err != nil {
-		log.Error("Failed to check if email already exists in dB")
+		log.Error("Failed to check if email already exists in dB : ", err)
 		return fmt.Errorf("Internal Server Errir")
 	}
 	if email_exists {
@@ -54,7 +54,7 @@ func (r *UserRepository) CreateUser(SignUpInfo internal.SignUpRequest) error {
 	query := `INSERT INTO users (username, first_name, last_name, email, password) VALUES (?, ?, ?, ?, ?)`
 	_, err = r.db.Exec(query, SignUpInfo.Username, SignUpInfo.FirstName, SignUpInfo.LastName, SignUpInfo.Email, SignUpInfo.Password)
 	if err != nil {
-		log.Error("Failed to create user")
+		log.Error("Failed to create user : ", err)
 		return fmt.Errorf("Either username or email is already in use")
 	}
 	return nil
@@ -62,15 +62,15 @@ func (r *UserRepository) CreateUser(SignUpInfo internal.SignUpRequest) error {
 
 func (r *UserRepository) LogInUser(logInInfo internal.LogInRequest) (internal.LogInReturn, error) {
 
-	var storedPassword, username, id string
+	var storedPassword, username, id, avatar string
 	//? Check if email exists and get the stored password and username
-	err := r.db.QueryRow("SELECT password, username, id FROM users WHERE email = ?", logInInfo.Email).Scan(&storedPassword, &username, &id)
+	err := r.db.QueryRow("SELECT password, username, id, avatar FROM users WHERE email = ?", logInInfo.Email).Scan(&storedPassword, &username, &id, &avatar)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			log.Error("Email is not registered")
+			log.Error("Email is not registered : ", err)
 			return internal.LogInReturn{Username: "", User_Id: ""}, fmt.Errorf("Email is not registered")
 		}
-		log.Error("Internal Server Error")
+		log.Error("Internal Server Error : ", err)
 		return internal.LogInReturn{Username: "", User_Id: ""}, fmt.Errorf("Internal server error")
 	}
 
@@ -88,10 +88,10 @@ func (r *UserRepository) LogInUser(logInInfo internal.LogInRequest) (internal.Lo
 }
 
 func (r *UserRepository) CreatePost(createPostInfo internal.CreatePostRequest) error {
-	query := `INSERT INTO posts (content, user_id) VALUES (?, ?)`
-	_, err := r.db.Exec(query, createPostInfo.Content, createPostInfo.User_Id)
+	query := `INSERT INTO posts (text_content, user_id, username) VALUES (?, ?, ?)`
+	_, err := r.db.Exec(query, createPostInfo.Content, createPostInfo.User_Id, createPostInfo.Username)
 	if err != nil {
-		log.Error("Failed to insert user post in posts table")
+		log.Error("Failed to insert user post in posts table: ", err)
 		return fmt.Errorf("Failed to create post")
 	}
 
@@ -100,11 +100,12 @@ func (r *UserRepository) CreatePost(createPostInfo internal.CreatePostRequest) e
 
 func (r *UserRepository) GetPosts() ([]internal.Post, error) {
 	var posts []internal.Post
-	query := `SELECT * FROM posts;`
+	query := `SELECT * FROM posts ORDER BY updated_at DESC;`
 
 	rows, err := r.db.Query(query)
 	if err != nil {
 		log.Error("Failed to get posts from the database")
+		log.Error(err)
 		return nil, fmt.Errorf("Failed to get posts")
 	}
 	defer rows.Close()

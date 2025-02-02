@@ -67,14 +67,16 @@ func main() {
 
 	standardRoutes := r.Group("/")
 	standardRoutes.GET("/", handlers.Feed)
+	standardRoutes.POST("/settings", middleware.Auth(), handlers.Settings)
 
 	auth := r.Group("/auth")
 	auth.POST("/signup", handlers.SignUp)
 	auth.POST("/login", middleware.LogHeaders(), handlers.LogIn)
 
-	r.POST("/create-post", handlers.CreatePost)
+	r.POST("/create-post", middleware.Auth(), handlers.CreatePost)
 	r.GET("/posts", handlers.GetPosts)
 	r.GET("/posts/:id", handlers.GetPostByID)
+	// r.GET("/user/:username", handlers.UserPage)
 	r.GET("/test", func(ctx *gin.Context) {
 
 	})

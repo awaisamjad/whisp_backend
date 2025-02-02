@@ -12,10 +12,10 @@ type Post struct {
 	Username      string `json:"username"`
 	Avatar        string `json:"avatar"`
 	Text_Content  string `json:"text_content"`
-	Image_Content string `json:"image_content,omitempty"`  // Could be extended to an array for multiple images
-	Tags          string `json:"tags,omitempty"` // Tags for the post
-	Comment_Count int    `json:"comment_count"`  // Count of comments
-	Retweet_Count int    `json:"retweet_count"`  // Count of retweets
+	Image_Content string `json:"image_content,omitempty"` // Could be extended to an array for multiple images
+	Tags          string `json:"tags,omitempty"`          // Tags for the post
+	Comment_Count int    `json:"comment_count"`           // Count of comments
+	Retweet_Count int    `json:"retweet_count"`           // Count of retweets
 	Like_Count    int    `json:"like_num"`
 	Created_At    string `json:"created_at"`
 	Updated_At    string `json:"updated_at"`
@@ -56,12 +56,14 @@ type LogInRequest struct {
 // What the dB gives back when the user is logged in
 type LogInReturn struct {
 	Username string `json:"username"`
-	User_Id       string `json:"user_id"`
+	User_Id  string `json:"user_id"`
+	Avatar  string `json:"avatar"`
 }
 
 type CreatePostRequest struct {
-	Content string `json:"content"`
-	User_Id string `json:"user_id"`
+	Content  string `json:"content"`
+	User_Id  string `json:"user_id"`
+	Username string `json:"username"`
 }
 
 type ErrorResponse struct {

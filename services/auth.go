@@ -60,7 +60,7 @@ func (u *UserService) SignUp(signUpInfo internal.SignUpRequest) error {
 }
 
 func (u *UserService) LogIn(logInInfo internal.LogInRequest) (internal.LogInReturn, error) {
-	
+
 	return u.repo.LogInUser(logInInfo)
 }
 

@@ -48,10 +48,10 @@ func LogIn(ctx *gin.Context) {
 
 	log.Println(string(internal.Auth_Token))
 	ctx.JSON(http.StatusOK, gin.H{
-		"username": logInReturnData.Username,
-		"user_id":  logInReturnData.User_Id,
-		// "auth_token": "jwt_token",
+		"username":   logInReturnData.Username,
+		"user_id":    logInReturnData.User_Id,
 		"auth_token": internal.Auth_Token,
+		"avatar":     logInReturnData.Avatar,
 	})
 	log.Println(string(internal.Auth_Token))
 
